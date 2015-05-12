@@ -5,11 +5,7 @@ Takes a fasta file and returns the sequences that belong to clones of sizes
 n or larger
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
-
 -- Built-in
-import Data.List
-import Data.Function (on)
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as TIO
 import qualified System.IO as IO
@@ -22,6 +18,7 @@ import qualified Pipes.Text.IO as PTIO
 
 -- Local
 import Data.Fasta.Text.Lazy
+import Filter
 
 -- Command line arguments
 data Options = Options { input  :: String
@@ -59,15 +56,6 @@ options = Options
          <> value 1
          <> help "The index of the clone field in the fasta header\
                  \ (1 indexed)" )
-
--- | Filter those entities greater than or equal to n occurrences
-filterCommonEntities :: Int -> Int -> [FastaSequence] -> [FastaSequence]
-filterCommonEntities ind n = concat
-                           . filter (\xs -> length xs >= n)
-                           . groupBy ((==) `on` getClone ind)
-                           . sortBy (compare `on` getClone ind)
-  where
-    getClone x = (!! x) . T.splitOn "|" . fastaHeader
 
 cloneSizeFilter :: Options -> IO ()
 cloneSizeFilter opts = do

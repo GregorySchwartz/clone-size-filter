@@ -19,7 +19,7 @@ import Data.Fasta.Text.Lazy
 -- | Filter those entities greater than or equal to n occurrences
 filterCommonEntities :: Int -> Int -> [FastaSequence] -> [FastaSequence]
 filterCommonEntities ind n = concat
-                           . filter (\xs -> length xs >= n)
+                           . filter ((>= n) . length)
                            . groupBy ((==) `on` getClone ind)
                            . sortBy (compare `on` getClone ind)
   where

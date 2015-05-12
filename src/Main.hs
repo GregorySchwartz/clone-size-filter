@@ -59,10 +59,12 @@ options = Options
 
 cloneSizeFilter :: Options -> IO ()
 cloneSizeFilter opts = do
+    let go acc []  = acc
+        go acc [x] = x : acc
     hIn  <- if null . input $ opts
                 then return IO.stdin
                 else IO.openFile (input opts) IO.ReadMode
-    fastaList <- runEffect $ P.toListM $ pipesFasta . PTIO.fromHandle $ hIn
+    fastaList <- runEffect $ P.fold go [] id $ (pipesFasta . PTIO.fromHandle $ hIn) >-> P.map (:[])
 
     -- Get output string
     let filteredFastaList = filterCommonEntities

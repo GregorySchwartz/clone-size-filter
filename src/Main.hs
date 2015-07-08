@@ -21,10 +21,12 @@ import Data.Fasta.Text.Lazy
 import Filter
 
 -- Command line arguments
-data Options = Options { input  :: String
-                       , output :: String
-                       , size   :: Int
-                       , index  :: Int }
+data Options = Options { input   :: String
+                       , output  :: String
+                       , size    :: Int
+                       , index   :: Int
+                       , isCount :: Bool
+                       }
 
 -- Command line options
 options :: Parser Options
@@ -56,6 +58,11 @@ options = Options
          <> value 1
          <> help "The index of the clone field in the fasta header\
                  \ (1 indexed)" )
+      <*> switch
+          ( long "frequency"
+         <> short 'f'
+         <> help "Whether the size of that clone is in the header, rather than\
+                 \ grouping clone IDs" )
 
 cloneSizeFilter :: Options -> IO ()
 cloneSizeFilter opts = do
@@ -65,10 +72,17 @@ cloneSizeFilter opts = do
     fastaList <- runEffect $ P.toListM $ pipesFasta . PTIO.fromHandle $ hIn
 
     -- Get output string
-    let filteredFastaList = filterCommonEntities
-                            (index opts)
-                            (size opts)
-                            fastaList
+    let filteredFastaList = if isCount opts
+                                then
+                                    filterCounts
+                                    (index opts)
+                                    (size opts)
+                                    fastaList
+                                else
+                                    filterCommonEntities
+                                    (index opts)
+                                    (size opts)
+                                    fastaList
         outputString      = T.unlines . map showFasta $ filteredFastaList
 
 

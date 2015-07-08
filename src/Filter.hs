@@ -25,3 +25,9 @@ filterCommonEntities ind n = concat
   where
     getClone x = (!! (x - 1)) . T.splitOn "|" . fastaHeader
 
+-- | Filter those entities greater than or equal to n occurrences, where
+-- n is now inside the header
+filterCounts :: Int -> Int -> [FastaSequence] -> [FastaSequence]
+filterCounts ind n = filter ((>= n) . getCount ind)
+  where
+    getCount x = read . T.unpack . (!! (x - 1)) . T.splitOn "|" . fastaHeader
